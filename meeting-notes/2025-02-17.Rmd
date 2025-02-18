@@ -1,0 +1,23 @@
+Feb 17, 2025
+present: rachel, ceci, doan, fern, ian, cameron, maddie
+
+Maddie:
+High severity -> higher cover of ruderal and seeded species; higher diversity in general
+Low severity -> species dependent on fire for regeneration (resprouters); lower diversity than high; unburned lowest diversity of all
+
+Rachel:
+More perenniality in unburned, fewer in high severity
+Unburned lower diversity, increasing diversity in gradient
+More annuals and more invasive in high severity
+
+Ian:
+Diversity will follow the intermediate hypothesis
+Driven by competitive species at unburned, and rapidly dispersing ruderal species at high severity, everything in between in the middle
+More perennial in unburned, more annual in high
+High SLA, low LDMC in high
+Low SLA, high LDMC in unburned
+
+Fern:
+Low severity -> highest diversity
+Driven by differences in dispersal
+Growth response to fire may differ across the gradient
