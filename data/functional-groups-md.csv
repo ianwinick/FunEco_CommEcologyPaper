@@ -1,0 +1,7 @@
+﻿functional group descriptions,code,notes
+longevity,"1 = annual/biennial,  2 = perennial",lump biennials into annuals
+type,"1 = graminoid, 2 = forb, 3 = shrub, 4 = tree",
+resprouting,"1 = resprouting, 2 = non-resprouting",
+resprouting2,"1 = obligate resprouting, 2 = facultative resprouting, 3 = non-resprouting",IF we can find this
+dispersal,"1 = wind dispersed, 2 = non-wind dispersed",ian and I were thinking wind dispersed is the most important dispersal type… we can talk aboiut this/ get more granular if necessary?
+photosynthesis,"1 = c3,  2 = c4, 3 = cam",
