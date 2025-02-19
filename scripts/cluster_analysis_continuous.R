@@ -1,5 +1,5 @@
 ##Ceci Martinez
-##February 19. 2025
+##February 19 2025
 
 ##This is a script to run a preliminary hierarchical cluster analysis to determine 
 #functional groups for species occurring in plots within the 
@@ -16,12 +16,14 @@ library(tibble)
 library(dendextend)
 
 # read in data ------------------------------------------------------------
-
 trait_dat <- read_csv("data/TraitTable.csv")
 str(trait_dat)
 
-
 # wrangle data ------------------------------------------------------------
+
+# clean it up, remove last row with NA
+trait_dat <- trait_dat %>% 
+  slice(-n())
 
 # normalize continuous data
 trait_dat_scale <- trait_dat %>%
@@ -73,14 +75,14 @@ plot(fit_0)
 plot(fit_1) 
 plot(fit_2) 
 
+# visualizing cluster analysis output -----------------------------------------
 
-# visualizing cluster analysis --------------------------------------------
 # plotting dendrogram with 3 gruops
 fit0_col3 <- color_branches(as.dendrogram(fit_0), k = 3)
 plot(fit0_col)
 rect.hclust(fit, k=3, border = "blue")
 
-# plotting dendrogram with 3 gruops
+# plotting dendrogram with 2 gruops
 fit0_col2 <- color_branches(as.dendrogram(fit_0), k = 2)
 plot(fit0_col)
 rect.hclust(fit, k=2, border = "blue")
@@ -88,17 +90,24 @@ rect.hclust(fit, k=2, border = "blue")
 # plotting clusters on scatterplot
 trait_dat$color <- as.factor(member_03)
 trait_dat$color2 <- as.factor(member_02)
-plot_clusters_sla3 <- ggplot(trait_dat, aes(x = sla, y = height, label = spp, col = color)) + 
+plot_clusters_sla3 <- ggplot(trait_dat, aes(x = sla, y = ldmc, label = spp, col = color)) + 
   geom_point() + 
   geom_text(vjust = -1, hjust = 0.5, size = 3) +  
-  theme_classic()
-plot_clusters_sla2 <- ggplot(trait_dat, aes(x = sla, y = height, label = spp, col = color2)) + 
+  ggtitle("3 Clusters") + 
+  theme_classic() + 
+  theme(legend.position = "none")
+# save ggplot
+ggsave("outputs/cluster_scatterplot.pdf", plot_clusters_sla3)
+
+plot_clusters_sla2 <- ggplot(trait_dat, aes(x = sla, y = ldmc, label = spp, col = color2)) + 
   geom_point() + 
   geom_text(vjust = -1, hjust = 0.5, size = 3) +  
-  theme_classic()
+  ggtitle("2 Clusters") + 
+  theme_classic() 
 
 plot_clusters_ldmc <- ggplot(trait_dat, aes(x = ldmc, y = height, label = spp, col = color)) + 
   geom_point() + 
+  geom_text(vjust = -1, hjust = 0.5, size = 3) +  
   theme_classic()
 
 
@@ -112,5 +121,6 @@ scree_plot <- ggplot(fit_0$height %>%
         geom_point() +
         ggtitle("ScreePlot") + 
 theme_bw() 
-# go for lower number of clusters, 3 or 4 max
+# save ggplot
+ggsave("outputs/scree_plot.pdf", scree_plot)
 
