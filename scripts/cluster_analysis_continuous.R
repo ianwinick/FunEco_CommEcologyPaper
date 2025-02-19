@@ -8,6 +8,8 @@
 # load packages -----------------------------------------------------------
 
 library(vegan)
+library(tidyverse)
+library(cluster)
 library(ggplot2)
 library(readr)
 library(tidyr)
@@ -29,7 +31,8 @@ trait_dat <- trait_dat %>%
 trait_dat_scale <- trait_dat %>%
   mutate(across(c(ldmc, height, sla), ~ as.numeric(scale(.))))
 
-trait_dat_scale <- trait_dat_scale %>% column_to_rownames(var = "spp")
+trait_dat_scale <- trait_dat_scale %>% column_to_rownames(var = "spp") %>% 
+  select(c(ldmc, height, sla))
 
 # data exploration --------------------------------------------------------
 
@@ -63,6 +66,11 @@ dist_matrix <- dist(trait_dat_scale, method = "euclidean")
 
 # employ different hclust methods (here we use ward, complete linkage, and average linkage methods)
 fit_0 <- hclust(dist_matrix, method="ward.D2") #ward method
+
+# compute with agnes to get an agglomerative coefficient
+fit_01 <- agnes(trait_dat_scale, method = "ward", metric = "euclidean")
+fit_01$ac #inidicates strong clustering structure 
+
 fit_1 <- hclust(dist_matrix) #complete method 
 fit_2 <- hclust(dist_matrix, method = "average") #average method
 
@@ -75,17 +83,18 @@ plot(fit_0)
 plot(fit_1) 
 plot(fit_2) 
 
+
 # visualizing cluster analysis output -----------------------------------------
 
 # plotting dendrogram with 3 gruops
 fit0_col3 <- color_branches(as.dendrogram(fit_0), k = 3)
-plot(fit0_col)
-rect.hclust(fit, k=3, border = "blue")
+plot(fit0_col3)
+rect.hclust(fit_0, k=3, border = "blue")
 
 # plotting dendrogram with 2 gruops
 fit0_col2 <- color_branches(as.dendrogram(fit_0), k = 2)
-plot(fit0_col)
-rect.hclust(fit, k=2, border = "blue")
+plot(fit0_col2)
+rect.hclust(fit_0, k=2, border = "blue")
 
 # plotting clusters on scatterplot
 trait_dat$color <- as.factor(member_03)
@@ -109,6 +118,12 @@ plot_clusters_ldmc <- ggplot(trait_dat, aes(x = ldmc, y = height, label = spp, c
   geom_point() + 
   geom_text(vjust = -1, hjust = 0.5, size = 3) +  
   theme_classic()
+
+# different method for viz and diagnostics using the factoextra package
+sub_grps_0 <- cutree(fit_01, k = 3)
+fviz_cluster(list(data = trait_dat_scale, cluster = sub_grps_0)) + theme_classic()
+fviz_nbclust(trait_dat_scale, FUN = hcut, method = "wss")
+fviz_nbclust(trait_dat_scale, FUN = hcut, method = "silhouette")
 
 
 # scree plot for number of groups
