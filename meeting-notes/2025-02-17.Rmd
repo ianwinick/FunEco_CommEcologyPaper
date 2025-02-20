@@ -21,3 +21,6 @@ Fern:
 Low severity -> highest diversity
 Driven by differences in dispersal
 Growth response to fire may differ across the gradient
+
+Feb 20, 2025
+sla driving one group (VETH, PSMA, CHAL)
