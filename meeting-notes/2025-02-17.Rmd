@@ -23,4 +23,7 @@ Driven by differences in dispersal
 Growth response to fire may differ across the gradient
 
 Feb 20, 2025
-sla driving one group (VETH, PSMA, CHAL)
+prelim cluster anlaysis results
+- sla driving one group (VETH, PSMA, CHAL) when trait data are centered and scaled
+- try to log transform and see if results stay same
+- 
