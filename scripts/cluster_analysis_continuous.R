@@ -2,8 +2,8 @@
 ##February 19 2025
 
 ##This is a script to run a preliminary hierarchical cluster analysis to determine 
-#functional groups for species occurring in plots within the 
-#burn scar of the Museum Fire near Flagstaff, AZ
+#functional groups using functional traits for species occurring in plots within the 
+#burn scar of the Museum Fire near Flagstaff, AZ. 
 
 # load packages -----------------------------------------------------------
 
