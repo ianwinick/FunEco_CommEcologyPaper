@@ -25,5 +25,9 @@ Growth response to fire may differ across the gradient
 Feb 20, 2025
 prelim cluster anlaysis results
 - sla driving one group (VETH, PSMA, CHAL) when trait data are centered and scaled
-- try to log transform and see if results stay same
-- 
+- try to log transform and see if results stay same -- they don't :(
+
+functional groups
+- dispersal: wind or not; consult Rachel about other disperal mechanisms
+- add n-fixing group (binary)
+
