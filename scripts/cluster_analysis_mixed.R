@@ -86,7 +86,7 @@ rect.hclust(clust_2, k=3, border = "blue")
 
 # these two different methods yield the same grouping structure
 
-# plotting by reducing dimensionality 
+# plotting in reduced dimensions 
 tsne_obj <- Rtsne(dist_gower, is_distance = TRUE, perplexity = 6)
 
 tsne_data <- tsne_obj$Y %>%
@@ -107,10 +107,13 @@ ggsave("outputs/cluster_tsneplot_ALLtraits.pdf", viz_ALLtraits)
 trait_dat_log <- trait_dat_log %>% 
   mutate(cluster = factor(member_03))
 
-# use rd to see which traits are most predictive of clusters
+# use rf to see which traits are most predictive of clusters
 rf_mod <- randomForest(cluster ~ ., data = trait_dat_log, importance = TRUE)
 importance(rf_mod)
 print(importance(rf_mod)) 
+varImpPlot(rf_mod)
+
+
 # type, sla, longevity come out as top three most important
 
 # viz cont traits with boxpltos
