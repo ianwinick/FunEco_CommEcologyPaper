@@ -1,6 +1,6 @@
 Feb 17, 2025
-present: rachel, ceci, doan, fern, ian, cameron, maddie
 
+Notes about hypotheses:
 Maddie:
 High severity -> higher cover of ruderal and seeded species; higher diversity in general
 Low severity -> species dependent on fire for regeneration (resprouters); lower diversity than high; unburned lowest diversity of all
@@ -30,4 +30,8 @@ prelim cluster anlaysis results
 functional groups
 - dispersal: wind or not; consult Rachel about other disperal mechanisms
 - add n-fixing group (binary)
+
+Feb 24, 2025
+
+
 
