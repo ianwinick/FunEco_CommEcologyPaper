@@ -27,11 +27,18 @@ str(trait_dat)
 trait_dat <- trait_dat %>% 
   slice(-n())
 
+# try log transforming first
+trait_dat_log <- trait_dat %>%
+  column_to_rownames(var = "spp") %>%
+  select(c(ldmc, height, sla)) %>% 
+  mutate(across(c(ldmc, height, sla), log))
+
 # normalize continuous data
 trait_dat_scale <- trait_dat %>%
   mutate(across(c(ldmc, height, sla), ~ as.numeric(scale(.))))
 
-trait_dat_scale <- trait_dat_scale %>% column_to_rownames(var = "spp") %>% 
+trait_dat_scale <- trait_dat_scale %>% 
+  column_to_rownames(var = "spp") %>% 
   select(c(ldmc, height, sla))
 
 # data exploration --------------------------------------------------------
@@ -62,7 +69,7 @@ ggplot(trait_dat, aes(x = ldmc, y = sla, label = spp)) +
 
 # create distance matrix based on euclidean distance (can possible explore other options later)
 
-dist_matrix <- dist(trait_dat_scale, method = "euclidean")
+dist_matrix <- dist(trait_dat_log, method = "euclidean")
 
 # employ different hclust methods (here we use ward, complete linkage, and average linkage methods)
 fit_0 <- hclust(dist_matrix, method="ward.D2") #ward method
