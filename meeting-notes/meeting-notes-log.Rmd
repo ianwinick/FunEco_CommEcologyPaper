@@ -33,7 +33,10 @@ functional groups
 
 Feb 24, 2025
 - potentially add another functional group
+  side quests
+  seed size - extract from SEINet if possible (more important side quest)
   pollinator resources - separate analysis (side quest to tack on at end if we have time)
+  
 
 
 
