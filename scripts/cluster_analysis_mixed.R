@@ -28,8 +28,11 @@ str(trait_dat)
 # wrangle data ------------------------------------------------------------
 
 #making relevant groups categorical
+
 trait_dat <- trait_dat %>% 
-  mutate(across(c("longevity", "type", "nfix", "resprouting", 
+  select(-"type")
+trait_dat <- trait_dat %>% 
+  mutate(across(c("longevity", "nfix", "resprouting", 
                   "dispersal", "photosynthesis"), as.factor))
 
 # try log transforming first because gower distance is sensitive to non-normality and 
@@ -92,11 +95,11 @@ tsne_obj <- Rtsne(dist_gower, is_distance = TRUE, perplexity = 6)
 tsne_data <- tsne_obj$Y %>%
   data.frame() %>%
   setNames(c("X", "Y")) %>%
-  mutate(cluster = factor(member_03),
+  mutate(cluster = factor(member_04),
          name = rownames(trait_dat_log))
 
 viz_ALLtraits <- ggplot(tsne_data, aes(x = X, y = Y)) +
-  geom_point(aes(color = factor(member_03)), size = 2.5) +
+  geom_point(aes(color = factor(member_04)), size = 2.5) +
   geom_text_repel(aes(label = name), size = 3) +
   theme_minimal() +
   scale_color_brewer(palette = "Set1")
@@ -105,7 +108,7 @@ ggsave("outputs/cluster_tsneplot_ALLtraits.pdf", viz_ALLtraits)
 
 # adding cluster labels to df
 trait_dat_log <- trait_dat_log %>% 
-  mutate(cluster = factor(member_03))
+  mutate(cluster = factor(member_04))
 
 # use rf to see which traits are most predictive of clusters
 rf_mod <- randomForest(cluster ~ ., data = trait_dat_log, importance = TRUE)
@@ -122,7 +125,7 @@ ggsave("outputs/sla_plot.pdf", sla_plot)
 
 
 # viz cat traits --> 
-type_plot <- ggplot(trait_dat_log, aes(x = type, fill = cluster)) +
+type_plot <- ggplot(trait_dat_log, aes(x = cluster, fill = type)) +
   geom_bar(position = "dodge") +
   theme_minimal()
 
