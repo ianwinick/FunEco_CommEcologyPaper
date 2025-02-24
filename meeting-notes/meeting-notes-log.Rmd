@@ -32,6 +32,9 @@ functional groups
 - add n-fixing group (binary)
 
 Feb 24, 2025
+- potentially add another functional group
+  pollinator status
+
 
 
 
