@@ -25,6 +25,13 @@ str(trait_dat)
 
 # wrangle data ------------------------------------------------------------
 
+# try log transforming first because gower distance is sensitive to non-normality and 
+# outliers for continuous variabeles
+
+trait_dat_log <- trait_dat %>%
+  column_to_rownames(var = "spp") %>%
+  mutate(across(c(ldmc, height, sla), log))
+
 # normalize continuous data
 trait_dat_scale <- trait_dat %>%
   mutate(across(c(ldmc, height, sla), ~ as.numeric(scale(.))))
