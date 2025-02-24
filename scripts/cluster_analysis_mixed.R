@@ -40,9 +40,9 @@ trait_dat_log <- trait_dat %>%
   mutate(across(c(ldmc, height, sla), log))
 str(trait_dat_log) 
 
-# normalize continuous data
-trait_dat_log <- trait_dat_log %>%
-  mutate(across(c(ldmc, height, sla), ~ as.numeric(scale(.))))
+# # normalize continuous data
+# trait_dat_log <- trait_dat_log %>%
+#   mutate(across(c(ldmc, height, sla), ~ as.numeric(scale(.))))
 
 
 # data exploration --------------------------------------------------------
@@ -112,9 +112,6 @@ rf_mod <- randomForest(cluster ~ ., data = trait_dat_log, importance = TRUE)
 importance(rf_mod)
 print(importance(rf_mod)) 
 varImpPlot(rf_mod)
-
-
-# type, sla, longevity come out as top three most important
 
 # viz cont traits with boxpltos
 sla_plot <- ggplot(trait_dat_log, aes(x = cluster, y = sla, fill = cluster)) +
