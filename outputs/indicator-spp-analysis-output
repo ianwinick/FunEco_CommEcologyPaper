@@ -1,0 +1,14 @@
+indicator species for unburned
+PIPR (stat = 0.275, p = 0.077 .)
+
+indicator species for low severity
+MUVI (stat = 0.314, p = 0.0345 *)
+
+indicator species for high severity
+VETH(stat = 0.618, p = 0.0001 ***)
+LOWR(stat = 0.296, p = 0.0548 . )
+CEFE(stat = 0.290, p = 0.0625 .)
+LIDA(stat = 0.284, p = 0.0598 .)
+FEAR(stat = 0.283, p = 0.0673 .)
+PSMA(stat = 0.283, p = 0.0177 *)
+ELEL(stat = 0.282, p = 0.0696 . )
