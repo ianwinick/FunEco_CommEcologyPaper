@@ -7,19 +7,26 @@ library(pairwiseAdonis)
 library(ggfortify)
 library(ggordiplots)
 
-data <- read_csv("CommunityMatrix.csv")
-traits <- read_csv("TraitTable.csv")%>%
+################################################################################
+# Ok so a little bit of a code garbage heap...                                 #
+# NMDS plots with trait vectors at the bottom                                  #  
+################################################################################
+
+data <- read_csv("data/CommunityMatrix.csv")
+traits <- read_csv("data/TraitTable.csv")%>%
   mutate(ldmc=log(ldmc)) %>%
   mutate(height=log(height)) %>%
   mutate(sla=log(sla)) %>%
+  mutate(seedmass=log(seedmass)) %>%
   filter(spp %in% colnames(data)) %>%
-  select(spp, sla, height, resprouting, dispersal) %>%
+  select(spp, sla, height, resprouting, seedmass) %>%
   column_to_rownames(var="spp")
-cwm <- dbFD(traits, comm)$CWM
 
 comm <- data %>%
   select(ARLU:VETH) %>%
   wisconsin()
+
+cwm <- dbFD(traits, comm)$CWM
 
 ################################################################################
 # TAXONOMIC PERMANOVA ##########################################################
@@ -53,20 +60,6 @@ tax_scores %>%
   stat_ellipse(geom="polygon", aes(group=severity, fill=severity), alpha = 0.3, size=.75) +
   geom_point(shape=1, size=2) +
   geom_point(data=tax_centroids, aes(NMDS1, NMDS2), size=3, shape=19) +
-  theme_classic()
-
-# Generate trait vectors for NMDS plot
-vec <- envfit(tax_nmds, cwm)
-
-fun_scores %>%
-  mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
-  ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
-  stat_ellipse(geom="polygon", aes(group=severity, fill=severity), alpha = 0.3, size=.75) +
-  geom_point(shape=1, size=2) +
-  #geom_point(data=tax_centroids, aes(NMDS1, NMDS2), size=3, shape=19) +
-  gg_envfit(fun_nmds, env=cwm, groups=data$Severity)
-  
-  autoplot(vec, loadings=T, loadings.label=T) +
   theme_classic()
 
 ################################################################################
@@ -109,3 +102,19 @@ fun_scores %>%
   geom_point(shape=1, size=2) +
   geom_point(data=fun_centroids, aes(NMDS1, NMDS2), size=3, shape=19) +
   theme_classic()
+
+################################################################################
+# ENVFIT PLOTS #################################################################
+################################################################################
+
+# envfit alpha set to 0.9 so non-significant traits are shown
+
+tax_scores %>%
+  mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
+  gg_envfit(tax_nmds, env=cwm, groups=data$Severity, alpha=0.9)
+
+fun_scores %>%
+  mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
+  gg_envfit(fun_nmds, env=cwm, groups=data$Severity, alpha=0.9)
