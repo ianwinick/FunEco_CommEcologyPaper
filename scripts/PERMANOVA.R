@@ -138,6 +138,8 @@ png("outputs/fun_nmds.png", width = 7.5, height = 5, units = "in", res = 300)
 fun_scores$severity <- factor(fun_scores$severity, levels = c("Unburned", "Low", "High"))
 envfit_fun <- envfit(fun_nmds, cwm, perm=999)
 
+print(fun_scores, n = 57)
+
 # plot range to try and stretch points out
 x_range <- range(c(fun_scores$NMDS1, fun_centroids$NMDS1, envfit_fun$vectors$arrows[,1]))
 y_range <- range(c(fun_scores$NMDS2, fun_centroids$NMDS2, envfit_fun$vectors$arrows[,2]))
@@ -179,8 +181,8 @@ fun_ellipses <- ordiellipse(fun_nmds,
             lwd = 2,
             label = FALSE)
 # legend
-legend("topleft", legend=names(severity_colors_centroids), 
-       col=severity_colors_centroids, pch=severity_symbols)
+#legend("topleft", legend=names(severity_colors_centroids), 
+       #col=severity_colors_centroids, pch=severity_symbols)
 
 # add envfit arrows
 plot(envfit_fun, p.max = 0.05, col = "black",
@@ -239,7 +241,7 @@ tax_ellipses <- ordiellipse(tax_nmds,
                             lwd = 2,
                             label = FALSE)
 # legend
-legend("topleft", legend=names(severity_colors_centroids), 
+legend("bottomleft", legend=names(severity_colors_centroids), 
        col=severity_colors_centroids, pch=severity_symbols)
 
 # add envfit arrows
