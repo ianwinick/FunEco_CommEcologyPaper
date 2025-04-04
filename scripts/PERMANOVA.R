@@ -133,7 +133,7 @@ fun_scores %>%
 ################################################################################
 
 # functional nmds with ellipses AND arrows so help me god
-png("outputs/fun_nmds.png", width = 7.5, height = 5, units = "in", res = 300)  # Adjust size as needed
+png("outputs/fun_nmds.png", width = 7.5, height = 5, units = "in", res = 300)
 
 fun_scores$severity <- factor(fun_scores$severity, levels = c("Unburned", "Low", "High"))
 envfit_fun <- envfit(fun_nmds, cwm, perm=999)
@@ -193,7 +193,7 @@ dev.off()
 
 
 # taxonomic nmds with ellipses AND arrows so help me god
-png("outputs/tax_nmds.png", width = 7.5, height = 5, units = "in", res = 300)  # Adjust size as needed
+png("outputs/tax_nmds.png", width = 7.5, height = 5, units = "in", res = 300)
 
 tax_scores$severity <- factor(tax_scores$severity, levels = c("Unburned", "Low", "High"))
 envfit_tax <- envfit(tax_nmds, cwm, perm=999)
