@@ -1,0 +1,77 @@
+---
+title: 'Making Tables'
+author: "FunEcoLab"
+output:
+  pdf_document
+header-includes:
+- \renewcommand*\familydefault{\sfdefault} %% this picks a sans serif font
+- \usepackage[T1]{fontenc}
+---
+
+```{r setup, echo=F}
+knitr::opts_chunk$set(cache = T)
+```
+
+```{r, include = F}
+
+library(tidyverse)
+library(vegan)
+library(FD)
+library(devtools)
+#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+library(pairwiseAdonis)
+library(ggfortify)
+library(ggordiplots)
+library(sjPlot)
+
+
+```
+
+## I. NMDS plots with trait vectors at the bottom 
+
+
+```{r, include = F}
+
+data <- read_csv("data/CommunityMatrix.csv")
+traits <- read_csv("data/TraitTable.csv")%>%
+  mutate(ldmc=log(ldmc)) %>%
+  mutate(height=log(height)) %>%
+  mutate(sla=log(sla)) %>%
+  mutate(seedmass=log(seedmass)) %>%
+  filter(spp %in% colnames(data)) %>%
+  select(spp, sla, height, resprouting, seedmass) %>%
+  column_to_rownames(var="spp")
+
+comm <- data %>%
+  select(ARLU:VETH) %>%
+  wisconsin()
+
+cwm <- dbFD(traits, comm)$CWM
+
+
+```
+
+## II. NMDS plots with fun and tax
+
+
+```{r, include = T}
+
+fun_nmds <- metaMDS(cwm, distance="euclidean", k=2, trymax=100)
+tax_nmds <- metaMDS(comm, distance="bray", k=2, trymax=100)
+
+envfit_fun <- envfit(fun_nmds, cwm, perm=999)
+fun_df <- data.frame(
+  Variable = rownames(envfit_fun$vectors$arrows),
+  NMDS1    = envfit_fun$vectors$arrows[, 1],
+  NMDS2    = envfit_fun$vectors$arrows[, 2],
+  r2       = envfit_fun$vectors$r,
+  p        = envfit_fun$vectors$pvals
+)
+
+
+tab_df(fun_df,
+       title = "Envfit for Functional NMDS Ordination",
+       digits = 4,
+       alternate.rows = TRUE)
+
+```
