@@ -1,11 +1,29 @@
+# this is fern's script and then maddie got all up in it to change relative abundance
+
 library(tidyverse)
+library(vegan)
+library(FD)
+library(devtools)
+library(ggfortify)
+library(ggordiplots)
 
 data <- read_csv("data/CommunityMatrix.csv")
-
 traits <- read_csv("data/TraitTable.csv")
+
+traits <- read_csv("data/TraitTable.csv")%>%
+  mutate(ldmc=log(ldmc)) %>%
+  mutate(height=log(height)) %>%
+  mutate(sla=log(sla)) %>%
+  mutate(seedmass=log(seedmass)) %>%
+  filter(spp %in% colnames(data)) %>%
+  select(spp, sla, height, resprouting, seedmass) %>%
+  column_to_rownames(var="spp")
+
+# maddie is changing the revitalization from Wisconsin to just relative spp abundance
 comm <- data %>%
   select(ARLU:VETH) %>%
-  wisconsin()
+  decostand(method = "total")
+
 cwm <- dbFD(traits, comm)$CWM
 
 # first approach:
@@ -83,3 +101,4 @@ ggplot(cover_df, aes(x = severity, y = cov*100, fill = group))+
   theme_light()
 
 #group_cover$severity <- factor(group_cover$severity, c("U", "L", "H"))
+
