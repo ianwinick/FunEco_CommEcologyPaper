@@ -2,24 +2,33 @@ library(tidyverse)
 library(vegan)
 library(FD)
 library(devtools)
-install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+#install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
 library(ggfortify)
 library(ggordiplots)
+library(sjPlot)
+library(pagedown)
 
-data <- read_csv("CommunityMatrix.csv")
-traits <- read_csv("TraitTable.csv")%>%
+################################################################################
+# Ok so a little bit of a code garbage heap...                                 #
+# NMDS plots with trait vectors at the bottom                                  #  
+################################################################################
+
+data <- read_csv("data/CommunityMatrix.csv")
+traits <- read_csv("data/TraitTable.csv")%>%
   mutate(ldmc=log(ldmc)) %>%
   mutate(height=log(height)) %>%
   mutate(sla=log(sla)) %>%
+  mutate(seedmass=log(seedmass)) %>%
   filter(spp %in% colnames(data)) %>%
-  select(spp, sla, height, resprouting, dispersal) %>%
+  select(spp, sla, height, resprouting, seedmass) %>%
   column_to_rownames(var="spp")
-cwm <- dbFD(traits, comm)$CWM
 
 comm <- data %>%
   select(ARLU:VETH) %>%
   wisconsin()
+
+cwm <- dbFD(traits, comm)$CWM
 
 ################################################################################
 # TAXONOMIC PERMANOVA ##########################################################
@@ -31,8 +40,33 @@ tax_nmds$stress
 stressplot(tax_nmds)
 
 # PERMANOVA and post-hoc pairwise PERMANOVA
-adonis2(vegdist(comm, method="bray") ~ data$Severity, permutations=9999)
+perm_tax <- adonis2(vegdist(comm, method = "bray") ~ data$Severity, permutations = 9999)
 pairwise.adonis(vegdist(comm, method="bray"), data$Severity, perm=9999)
+
+#PERMANOVA table
+perm_taxdf <- as.data.frame(perm_tax) %>%
+  rownames_to_column("Model") %>%
+  mutate(Model = if_else(Model == "Model", "Severity", Model)) %>%
+  select(Model, Df, R2, F, `Pr(>F)`) %>%
+  rename(
+    "df"    = Df,
+    "$R^2$" = R2,           
+    "$F$"   = F,
+    "$p$"   = `Pr(>F)`)
+  
+caption_text <- "PerMANOVA results for taxonomic NMDS<br><hr style='border-top: 3px double black; margin: 0;'>"
+
+perm_table_tax <- kbl(
+  perm_taxdf,   
+  escape    = FALSE,   
+  booktabs  = TRUE, 
+  caption = caption_text) %>%
+  kable_styling(
+    full_width = FALSE,
+    position   = "center"
+  )
+save_kable(perm_table_tax, file = "outputs/permanova_tax.html")
+
 
 # Test of beta dispersion and post-hoc pairwise test of beta dispersion
 anova(betadisper(vegdist(comm, method="bray"), data$Severity, type="centroid"))
@@ -40,33 +74,23 @@ TukeyHSD(betadisper(vegdist(comm, method="bray"), data$Severity, type="centroid"
 
 # Let's get to plotting
 tax_scores <- as_tibble(scores(tax_nmds, display="sites"), rownames="sites") %>%
-  mutate(severity=data$Severity)
+  mutate(severity=case_when(
+    sites %in% c(1:20) ~ "Unburned",
+    sites %in% c(21:40) ~ "Low",
+    sites %in% c(41:60) ~ "High"
+  ))
   
 tax_centroids <- tax_scores %>%
-  mutate(severity=factor(severity, levels=c("U", "L", "H"))) %>%
+  mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
   group_by(severity) %>%
   dplyr::summarize(NMDS1=mean(NMDS1), NMDS2=mean(NMDS2))
 
 tax_scores %>%
-  mutate(severity=factor(severity, levels=c("U", "L", "H"))) %>%
-  ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
-  stat_ellipse(geom="polygon", aes(group=severity, fill=severity), alpha = 0.3, size=.75) +
-  geom_point(shape=1, size=2) +
-  geom_point(data=tax_centroids, aes(NMDS1, NMDS2), size=3, shape=19) +
-  theme_classic()
-
-# Generate trait vectors for NMDS plot
-vec <- envfit(tax_nmds, cwm)
-
-fun_scores %>%
   mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
   ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
   stat_ellipse(geom="polygon", aes(group=severity, fill=severity), alpha = 0.3, size=.75) +
   geom_point(shape=1, size=2) +
-  #geom_point(data=tax_centroids, aes(NMDS1, NMDS2), size=3, shape=19) +
-  gg_envfit(fun_nmds, env=cwm, groups=data$Severity)
-  
-  autoplot(vec, loadings=T, loadings.label=T) +
+  geom_point(data=tax_centroids, aes(NMDS1, NMDS2), size=3, shape=19) +
   theme_classic()
 
 ################################################################################
@@ -86,8 +110,47 @@ fun_nmds$stress
 stressplot(fun_nmds)
 
 # PERMANOVA and post-hoc pairwise PERMANOVA
-adonis2(vegdist(cwm, method="euclidean") ~ data$Severity, permutations=9999)
+perm_fun <- adonis2(vegdist(cwm, method="euclidean") ~ data$Severity, permutations=9999)
 pairwise.adonis(vegdist(cwm, method="euclidean"), data$Severity, perm=9999)
+
+#PERMANOVA table
+perm_fundf <- as.data.frame(perm_fun) %>%
+  rownames_to_column("Model") %>%
+  mutate(Model = if_else(Model == "Model", "Severity", Model)) %>%
+  select(Model, Df, R2, F, `Pr(>F)`) %>%
+  rename(
+    "df"    = Df,
+    "$R^2$" = R2,           
+    "$F$"   = F,
+    "$p$"   = `Pr(>F)`)
+
+caption_text_fun <- "PerMANOVA results for functional NMDS<br><hr style='border-top: 3px double black; margin: 0;'>"
+
+perm_table_fun <- kbl(
+  perm_fundf,   
+  escape    = FALSE,   
+  booktabs  = TRUE, 
+  caption = caption_text_fun) %>%
+  kable_styling(
+    full_width = FALSE,
+    position   = "center"
+  )
+save_kable(perm_table_fun, file = "outputs/permanova_fun.html")
+
+##COMBINED PERMANOVA TABLES
+combined_perm_df <- cbind(perm_taxdf, perm_fundf[ , -c(1,2)])
+caption_text <- "PerMANOVA results for taxonomic and functional NMDS<br><hr style='border-top: 3px double black; margin: 0;'>"
+combined_perm_table <- kbl(
+  combined_perm_df,
+  col.names = c("Model", "df", "$R^2$", "$F$", "$p$", "$R^2$", "$F$", "$p$"),
+  escape    = FALSE,
+  booktabs  = TRUE,
+  caption   = caption_text
+) %>%
+  add_header_above(c(" " = 2, "Taxonomic" = 3, "Functional" = 3)) %>%
+  kable_styling(full_width = FALSE, position = "center")
+save_kable(combined_perm_table, file = "outputs/permanova_combined.html")
+
 
 # Test of beta dispersion and post-hoc pairwise test of beta dispersion
 anova(betadisper(vegdist(cwm, method="euclidean"), data$Severity, type="centroid"))
@@ -100,12 +163,238 @@ fun_scores <- as_tibble(scores(fun_nmds, display="sites"), rownames="sites") %>%
     sites %in% c(21:40) ~ "Low",
     sites %in% c(41:60) ~ "High"
   ))
+
 fun_centroids <- fun_scores %>%
   group_by(severity) %>%
   summarise(NMDS1=mean(NMDS1), NMDS2=mean(NMDS2))
+
 fun_scores %>%
   ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
   stat_ellipse(geom="polygon", aes(group=severity, fill=severity), alpha = 0.3, size=.75) +
   geom_point(shape=1, size=2) +
   geom_point(data=fun_centroids, aes(NMDS1, NMDS2), size=3, shape=19) +
   theme_classic()
+
+################################################################################
+# ENVFIT PLOTS #################################################################
+################################################################################
+
+# envfit alpha set to 0.9 so non-significant traits are shown
+
+tax_scores %>%
+  mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
+  gg_envfit(tax_nmds, env=cwm, groups=data$Severity, alpha=0.9)
+
+fun_scores %>%
+  mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
+  gg_envfit(fun_nmds, env=cwm, groups=data$Severity, alpha=0.9)
+
+
+
+
+################################################################################
+# ENVFIT + ELLIPSES PLOTS ######################################################
+################################################################################
+
+# functional nmds with ellipses AND arrows so help me god
+png("outputs/fun_nmds.png", width = 7.5, height = 5, units = "in", res = 300)
+
+fun_scores$severity <- factor(fun_scores$severity, levels = c("Unburned", "Low", "High"))
+envfit_fun <- envfit(fun_nmds, cwm, perm=999)
+
+#ENVfit table
+  fun_df <- data.frame(
+  Traits = rownames(envfit_fun$vectors$arrows),
+  NMDS1    = envfit_fun$vectors$arrows[, 1],
+  NMDS2    = envfit_fun$vectors$arrows[, 2],
+  r2       = envfit_fun$vectors$r,
+  p        = envfit_fun$vectors$pvals
+)
+
+  fun_df <- fun_df %>%
+    select(Traits, NMDS1, NMDS2, r2, p) %>%
+    rename(
+      "$r^2$" = r2,           
+      "$p$"   = p)
+  
+  caption_text <- "Envfit results for functional NMDS ordination<br><hr style='border-top: 3px double black; margin: 0;'>"
+  
+  envs_tablefun <- kbl(
+    fun_df,   
+    row.names = F,
+    escape    = FALSE,   
+    booktabs  = TRUE, 
+    caption = caption_text
+    ) %>%
+    kable_styling(
+      full_width = FALSE,
+      position   = "center"
+    )
+  save_kable(envs_tablefun, file = "outputs/envs_fun.html")
+  
+
+
+
+print(fun_scores, n = 57)
+
+# plot range to try and stretch points out
+x_range <- range(c(fun_scores$NMDS1, fun_centroids$NMDS1, envfit_fun$vectors$arrows[,1]))
+y_range <- range(c(fun_scores$NMDS2, fun_centroids$NMDS2, envfit_fun$vectors$arrows[,2]))
+
+buffer_x <- diff(x_range) * 0.2
+buffer_y <- diff(y_range) * 0.2
+
+par(pin = c(5.5, 3))
+
+# plot
+plot(fun_nmds, display="sites", type="n",
+     xlim = c(min(x_range) - buffer_x, max(x_range) + buffer_x), 
+     ylim = c(min(y_range) - buffer_y, max(y_range) + buffer_y))
+
+# colors
+severity_colors_points <- c("Unburned" = "#5bbcd695", "Low" = "#f9840295", "High" = "#fb040495")
+severity_colors_centroids <- c("Unburned" = "#5bbcd6", "Low" = "#f98402", "High" = "#fb0404")
+severity_symbols <- c("Unburned" = 15, "Low" = 16, "High" = 17)
+severity_lty <- c("Unburned" = 1, "Low" = 2, "High" = 3)
+
+# points and centroids
+points(fun_scores$NMDS1, fun_scores$NMDS2, 
+       col = severity_colors_points[fun_scores$severity],
+       bg = severity_colors_points[fun_scores$severity],
+       pch = severity_symbols[fun_scores$severity],
+       cex=1)
+
+points(fun_centroids$NMDS1, fun_centroids$NMDS2, 
+       col = severity_colors_centroids[fun_centroids$severity], 
+       pch = 19, cex=1.5)
+
+# ellipses
+fun_ellipses <- ordiellipse(fun_nmds, 
+            groups = fun_scores$severity, 
+            kind = "sd", 
+            conf = 0.95, 
+            col = severity_colors_centroids[unique(fun_scores$severity)],
+            lty = severity_lty[unique(fun_scores$severity)],
+            lwd = 2,
+            label = FALSE)
+# legend
+#legend("topleft", legend=names(severity_colors_centroids), 
+       #col=severity_colors_centroids, pch=severity_symbols)
+
+# add envfit arrows
+plot(envfit_fun, p.max = 0.05, col = "black",
+     xlim = c(min(x_range) - buffer_x, max(x_range) + buffer_x), 
+     ylim = c(min(y_range) - buffer_y, max(y_range) + buffer_y))
+
+# save
+dev.off()
+
+
+
+# taxonomic nmds with ellipses AND arrows so help me god
+png("outputs/tax_nmds.png", width = 7.5, height = 5, units = "in", res = 300)
+
+tax_scores$severity <- factor(tax_scores$severity, levels = c("Unburned", "Low", "High"))
+envfit_tax <- envfit(tax_nmds, cwm, perm=999)
+
+
+#ENVfit table
+tax_df <- data.frame(
+  Traits = rownames(envfit_tax$vectors$arrows),
+  NMDS1    = envfit_tax$vectors$arrows[, 1],
+  NMDS2    = envfit_tax$vectors$arrows[, 2],
+  r2       = envfit_tax$vectors$r,
+  p        = envfit_tax$vectors$pvals
+)
+
+tax_df <- tax_df %>%
+  select(Traits, NMDS1, NMDS2, r2, p) %>%
+  rename(
+    "$r^2$" = r2,           
+    "$p$"   = p)
+
+caption_text <- "Envfit results for taxonomic NMDS ordination<br><hr style='border-top: 3px double black; margin: 0;'>"
+
+envs_tabletax <- kbl(
+  tax_df,   
+  row.names = F,
+  escape    = FALSE,   
+  booktabs  = TRUE, 
+  caption = caption_text
+) %>%
+  kable_styling(
+    full_width = FALSE,
+    position   = "center"
+  )
+save_kable(envs_tabletax, file = "outputs/envs_tax.html")
+
+##COMBINED ENVFIT TABLES
+caption_text <- "Envfit results for taxonomic and functional NMDS ordinations<br><hr style='border-top: 3px double black; margin: 0;'>"
+combined_envfit <- cbind(tax_df, fun_df[, -1])
+combined_envfit_table <- kbl(combined_envfit,
+    escape    = FALSE,  
+    booktabs  = TRUE,
+    row.names = F,
+    caption   = caption_text,
+    col.names = c("Traits", "NMDS1", "NMDS2", "$r^2$", "$p$",
+                  "NMDS1", "NMDS2", "$r^2$", "$p$")
+) %>%
+  add_header_above(c(" " = 1, "Taxonomic" = 4, "Functional" = 4)) %>%
+  kable_styling(full_width = FALSE, position = "center")
+save_kable(combined_envfit_table, file = "outputs/envs_combined.html")
+
+
+# plot range to try and stretch points out
+x_range <- range(c(tax_scores$NMDS1, tax_centroids$NMDS1, envfit_tax$vectors$arrows[,1]))
+y_range <- range(c(tax_scores$NMDS2, tax_centroids$NMDS2, envfit_tax$vectors$arrows[,2]))
+
+buffer_x <- diff(x_range) * 0.2
+buffer_y <- diff(y_range) * 0.2
+
+par(pin = c(5.5, 3))
+
+# plot
+plot(tax_nmds, display="sites", type="n",
+     xlim = c(min(x_range) - buffer_x, max(x_range) + buffer_x), 
+     ylim = c(min(y_range) - buffer_y, max(y_range) + buffer_y))
+
+# colors
+severity_colors_points <- c("Unburned" = "#5bbcd695", "Low" = "#f9840295", "High" = "#fb040495")
+severity_colors_centroids <- c("Unburned" = "#5bbcd6", "Low" = "#f98402", "High" = "#fb0404")
+severity_symbols <- c("Unburned" = 15, "Low" = 16, "High" = 17)
+severity_lty <- c("Unburned" = 1, "Low" = 2, "High" = 3)
+
+# points and centroids
+points(tax_scores$NMDS1, tax_scores$NMDS2, 
+       col = severity_colors_points[tax_scores$severity],
+       bg = severity_colors_points[tax_scores$severity],
+       pch = severity_symbols[tax_scores$severity],
+       cex=1)
+
+points(tax_centroids$NMDS1, tax_centroids$NMDS2, 
+       col = severity_colors_centroids[tax_centroids$severity], 
+       pch = 19, cex=1.5)
+
+# ellipses
+tax_ellipses <- ordiellipse(tax_nmds, 
+                            groups = tax_scores$severity, 
+                            kind = "sd", 
+                            conf = 0.95, 
+                            col = severity_colors_centroids[unique(tax_scores$severity)],
+                            lty = severity_lty[unique(tax_scores$severity)],
+                            lwd = 2,
+                            label = FALSE)
+# legend
+legend("bottomleft", legend=names(severity_colors_centroids), 
+       col=severity_colors_centroids, pch=severity_symbols)
+
+# add envfit arrows
+plot(envfit_tax, p.max = 0.2, col = "black",
+     xlim = c(min(x_range) - buffer_x, max(x_range) + buffer_x), 
+     ylim = c(min(y_range) - buffer_y, max(y_range) + buffer_y))
+
+# save
+dev.off()
+
