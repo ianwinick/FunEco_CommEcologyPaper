@@ -3,7 +3,7 @@ library(vegan)
 library(FD)
 library(wesanderson)
 
-data <- read_csv("../data/CommunityMatrix.csv")
+data <- read_csv("data/CommunityMatrix.csv")
 
 # traits <- read_csv("data/TraitTable.csv")%>%
 #   mutate(ldmc=log(ldmc)) %>%
@@ -14,7 +14,8 @@ data <- read_csv("../data/CommunityMatrix.csv")
 #   column_to_rownames(var="spp")
 # comm <- data %>%
 #   select(ARLU:VETH) %>%
-#   wisconsin()
+#   decostand(method = "total")
+
 # cwm <- dbFD(traits, comm)$CWM
 
                   # first approach:
@@ -24,25 +25,25 @@ data <- read_csv("../data/CommunityMatrix.csv")
                   # group_by severity, functional group
                   # summarise to average the 
                   
-                  comm$severity <- data$Severity
-                  group_cover <- comm %>% 
-                    pivot_longer(cols = ARLU:VETH, names_to = "spp") %>% 
-                    mutate(group = case_when(spp %in% c("CARO", "ELEL", "FEAR",
-                                                        "MUMO", "MUVI", "PIPR", 
-                                                        "SCSC") ~ "graminoid",
-                                             spp == "CEFE" ~ "shrub",
-                                             spp == "QUGA" ~ "tree",
-                                             .default = "forb")) %>% 
-                    group_by(severity, group) %>% 
-                    summarise(mean_cov = mean(value))
-                  
-                  group_cover$severity <- factor(group_cover$severity, c("U", "L", "H"))
-                  
-                  ggplot(group_cover, aes(x = severity, y = mean_cov*100, fill = group))+
-                    geom_bar(stat = "identity")+
-                    labs(x = "Burn severity", y = "Relative Cover (%)",
-                         fill = "Functional type")+
-                    theme_light()
+                  # comm$severity <- data$Severity
+                  # group_cover <- comm %>% 
+                  #   pivot_longer(cols = ARLU:VETH, names_to = "spp") %>% 
+                  #   mutate(group = case_when(spp %in% c("CARO", "ELEL", "FEAR",
+                  #                                       "MUMO", "MUVI", "PIPR", 
+                  #                                       "SCSC") ~ "graminoid",
+                  #                            spp == "CEFE" ~ "shrub",
+                  #                            spp == "QUGA" ~ "tree",
+                  #                            .default = "forb")) %>% 
+                  #   group_by(severity, group) %>% 
+                  #   summarise(mean_cov = mean(value))
+                  # 
+                  # group_cover$severity <- factor(group_cover$severity, c("U", "L", "H"))
+                  # 
+                  # ggplot(group_cover, aes(x = severity, y = mean_cov*100, fill = group))+
+                  #   geom_bar(stat = "identity")+
+                  #   labs(x = "Burn severity", y = "Relative Cover (%)",
+                  #        fill = "Functional type")+
+                  #   theme_light()
 
 # ian's second suggested approach:
 
@@ -77,7 +78,7 @@ fun_cover <- group_cover2 %>%
 
 rel_fun_cover <- fun_cover %>% 
   select(-Severity, -Plot) %>% 
-  wisconsin()
+  decostand(method = "total")
 
 rel_fun_cover$severity <- fun_cover$Severity
 
