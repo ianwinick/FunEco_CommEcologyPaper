@@ -3,7 +3,7 @@ library(vegan)
 library(FD)
 library(wesanderson)
 
-data <- read_csv("data/CommunityMatrix.csv")
+data <- read_csv("../data/CommunityMatrix.csv")
 
 # traits <- read_csv("data/TraitTable.csv")%>%
 #   mutate(ldmc=log(ldmc)) %>%
