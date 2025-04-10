@@ -7,3 +7,4 @@ dispersal,"1 = wind dispersed, 2 = non-wind dispersed",ian and I were thinking w
 photosynthesis,"1 = c3,  2 = c4",,
 seedmass,seed mass of 100 seeds in grams,,
 seed size longest axis (mm),seed size of longest axis in mm,,
+nativity,"1 = native, 2 = exotic",,
