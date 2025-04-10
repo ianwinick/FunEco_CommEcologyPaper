@@ -270,6 +270,14 @@ points(fun_centroids$NMDS1, fun_centroids$NMDS2,
        col = severity_colors_centroids[fun_centroids$severity], 
        pch = 19, cex=1.5)
 
+# add outline to centroids
+points(fun_centroids$NMDS1, fun_centroids$NMDS2, 
+       pch = 21,                        
+       bg = severity_colors_centroids[fun_centroids$severity],  
+       col = "black",                   
+       lwd = 0.6,                       
+       cex = 1.5)    
+
 # ellipses
 fun_ellipses <- ordiellipse(fun_nmds, 
             groups = fun_scores$severity, 
@@ -292,7 +300,7 @@ plot(envfit_fun, p.max = 0.05, col = "black",
 dev.off()
 
 
-
+###############################################################################
 # taxonomic nmds with ellipses AND arrows so help me god
 png("outputs/tax_nmds.png", width = 7.5, height = 5, units = "in", res = 300)
 
@@ -376,6 +384,14 @@ points(tax_scores$NMDS1, tax_scores$NMDS2,
 points(tax_centroids$NMDS1, tax_centroids$NMDS2, 
        col = severity_colors_centroids[tax_centroids$severity], 
        pch = 19, cex=1.5)
+
+# add outline to centroids
+points(tax_centroids$NMDS1, tax_centroids$NMDS2, 
+       pch = 21,                        
+       bg = severity_colors_centroids[tax_centroids$severity],  
+       col = "black",                   
+       lwd = 0.6,                       
+       cex = 1.5)  
 
 # ellipses
 tax_ellipses <- ordiellipse(tax_nmds, 
