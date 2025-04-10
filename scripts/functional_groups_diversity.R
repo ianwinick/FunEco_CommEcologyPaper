@@ -70,4 +70,4 @@ ggplot(type_df, aes(x = severity, y = cov*100, fill = group))+
   geom_bar(stat = "identity", color = "black")+
   labs(x = "Burn severity", y = "Relative Cover (%)",
        fill = "Nativity")+
-  scale_fill_manual(values = wes_palette("FantasticFox1", 2))
+  scale_fill_manual(values = c("#ae94a3", "#4d795f"))
