@@ -14,12 +14,15 @@ library(pagedown)
 # NMDS plots with trait vectors at the bottom                                  #  
 ################################################################################
 
+
+# unlogging!
+
 data <- read_csv("data/CommunityMatrix.csv")
 traits <- read_csv("data/TraitTable.csv")%>%
-  mutate(ldmc=log(ldmc)) %>%
-  mutate(height=log(height)) %>%
-  mutate(sla=log(sla)) %>%
-  mutate(seedmass=log(seedmass)) %>%
+  #mutate(ldmc=log(ldmc)) %>%
+  #mutate(height=log(height)) %>%
+  #mutate(sla=log(sla)) %>%
+  #mutate(seedmass=log(seedmass)) %>%
   filter(spp %in% colnames(data)) %>%
   select(spp, sla, height, resprouting, seedmass) %>%
   column_to_rownames(var="spp")
@@ -204,39 +207,6 @@ png("outputs/fun_nmds.png", width = 7.5, height = 5, units = "in", res = 300)
 fun_scores$severity <- factor(fun_scores$severity, levels = c("Unburned", "Low", "High"))
 envfit_fun <- envfit(fun_nmds, cwm, perm=999)
 
-#ENVfit table
-  fun_df <- data.frame(
-  Traits = rownames(envfit_fun$vectors$arrows),
-  NMDS1    = envfit_fun$vectors$arrows[, 1],
-  NMDS2    = envfit_fun$vectors$arrows[, 2],
-  r2       = envfit_fun$vectors$r,
-  p        = envfit_fun$vectors$pvals
-)
-
-  fun_df <- fun_df %>%
-    select(Traits, NMDS1, NMDS2, r2, p) %>%
-    rename(
-      "$r^2$" = r2,           
-      "$p$"   = p)
-  
-  caption_text <- "Envfit results for functional NMDS ordination<br><hr style='border-top: 3px double black; margin: 0;'>"
-  
-  envs_tablefun <- kbl(
-    fun_df,   
-    row.names = F,
-    escape    = FALSE,   
-    booktabs  = TRUE, 
-    caption = caption_text
-    ) %>%
-    kable_styling(
-      full_width = FALSE,
-      position   = "center"
-    )
-  save_kable(envs_tablefun, file = "outputs/envs_fun.html")
-  
-
-
-
 print(fun_scores, n = 57)
 
 # plot range to try and stretch points out
@@ -249,9 +219,9 @@ buffer_y <- diff(y_range) * 0.2
 par(pin = c(5.5, 3))
 
 # plot
-plot(fun_nmds, display="sites", type="n",
-     xlim = c(min(x_range) - buffer_x, max(x_range) + buffer_x), 
-     ylim = c(min(y_range) - buffer_y, max(y_range) + buffer_y))
+plot(fun_nmds, display="sites", type="n")
+     #xlim = c(min(x_range) - buffer_x, max(x_range) + buffer_x), 
+     #ylim = c(min(y_range) - buffer_y, max(y_range) + buffer_y))
 
 # colors
 severity_colors_points <- c("Unburned" = "#5bbcd695", "Low" = "#f9840295", "High" = "#fb040495")
@@ -413,4 +383,38 @@ plot(envfit_tax, p.max = 0.2, col = "black",
 
 # save
 dev.off()
+
+
+
+
+#ENVfit table
+fun_df <- data.frame(
+  Traits = rownames(envfit_fun$vectors$arrows),
+  NMDS1    = envfit_fun$vectors$arrows[, 1],
+  NMDS2    = envfit_fun$vectors$arrows[, 2],
+  r2       = envfit_fun$vectors$r,
+  p        = envfit_fun$vectors$pvals
+)
+
+fun_df <- fun_df %>%
+  select(Traits, NMDS1, NMDS2, r2, p) %>%
+  rename(
+    "$r^2$" = r2,           
+    "$p$"   = p)
+
+caption_text <- "Envfit results for functional NMDS ordination<br><hr style='border-top: 3px double black; margin: 0;'>"
+
+envs_tablefun <- kbl(
+  fun_df,   
+  row.names = F,
+  escape    = FALSE,   
+  booktabs  = TRUE, 
+  caption = caption_text
+) %>%
+  kable_styling(
+    full_width = FALSE,
+    position   = "center"
+  )
+save_kable(envs_tablefun, file = "outputs/envs_fun.html")
+
 
