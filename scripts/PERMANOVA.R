@@ -29,6 +29,7 @@ traits <- read_csv("data/TraitTable.csv")%>%
 traits$resprouting <- ifelse(traits$resprouting == 1, 2, 1)
 
 comm <- data %>%
+  column_to_rownames(var = "Plot") %>% 
   select(ARLU:VETH) %>%
   wisconsin()
 
