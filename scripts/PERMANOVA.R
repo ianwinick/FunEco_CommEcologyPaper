@@ -25,6 +25,9 @@ traits <- read_csv("data/TraitTable.csv")%>%
   select(spp, sla, height, resprouting, seedmass) %>%
   column_to_rownames(var="spp")
 
+# binary 0,1 doesnt work for some reason in the dbFD function so recode the traits
+traits$resprouting <- ifelse(traits$resprouting == 1, 2, 1)
+
 comm <- data %>%
   select(ARLU:VETH) %>%
   wisconsin()
