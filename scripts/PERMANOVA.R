@@ -25,7 +25,11 @@ traits <- read_csv("data/TraitTable.csv")%>%
   select(spp, sla, height, resprouting, seedmass) %>%
   column_to_rownames(var="spp")
 
+# binary 0,1 doesnt work for some reason in the dbFD function so recode the traits
+traits$resprouting <- ifelse(traits$resprouting == 1, 2, 1)
+
 comm <- data %>%
+  column_to_rownames(var = "Plot") %>% 
   select(ARLU:VETH) %>%
   wisconsin()
 
@@ -42,7 +46,8 @@ stressplot(tax_nmds)
 
 # PERMANOVA and post-hoc pairwise PERMANOVA
 perm_tax <- adonis2(vegdist(comm, method = "bray") ~ data$Severity, permutations = 9999)
-pairwise.adonis(vegdist(comm, method="bray"), data$Severity, perm=9999)
+pair_tax <- pairwise.adonis(vegdist(comm, method="bray"), data$Severity, perm=9999)
+
 
 # Test of beta dispersion and post-hoc pairwise test of beta dispersion
 anova(betadisper(vegdist(comm, method="bray"), data$Severity, type="centroid"))
@@ -87,7 +92,7 @@ stressplot(fun_nmds)
 
 # PERMANOVA and post-hoc pairwise PERMANOVA
 perm_fun <- adonis2(vegdist(cwm, method="euclidean") ~ data$Severity, permutations=9999)
-pairwise.adonis(vegdist(cwm, method="euclidean"), data$Severity, perm=9999)
+pair_fun <- pairwise.adonis(vegdist(cwm, method="euclidean"), data$Severity, perm=9999)
 
 # Test of beta dispersion and post-hoc pairwise test of beta dispersion
 anova(betadisper(vegdist(cwm, method="euclidean"), data$Severity, type="centroid"))
@@ -127,7 +132,6 @@ fun_scores %>%
   mutate(severity=factor(severity, levels=c("Unburned", "Low", "High"))) %>%
   ggplot(aes(x=NMDS1, y=NMDS2, linetype=severity, color=severity)) +
   gg_envfit(fun_nmds, env=cwm, groups=data$Severity, alpha=0.9)
-
 
 
 
@@ -279,143 +283,3 @@ dev.off()
 
 ################################################################################
 ####################################TABLES######################################
-#PERMANOVA table
-perm_taxdf <- as.data.frame(perm_tax) %>%
-  rownames_to_column("Model") %>%
-  mutate(Model = if_else(Model == "Model", "Severity", Model)) %>%
-  select(Model, Df, R2, F, `Pr(>F)`) %>%
-  rename(
-    "df"    = Df,
-    "$R^2$" = R2,           
-    "$F$"   = F,
-    "$p$"   = `Pr(>F)`)
-
-caption_text <- "PerMANOVA results for taxonomic NMDS<br><hr style='border-top: 3px double black; margin: 0;'>"
-
-perm_table_tax <- kbl(
-  perm_taxdf,   
-  escape    = FALSE,   
-  booktabs  = TRUE, 
-  caption = caption_text) %>%
-  kable_styling(
-    full_width = FALSE,
-    position   = "center"
-  )
-save_kable(perm_table_tax, file = "outputs/permanova_tax.html")
-
-
-#ENVfit table
-fun_df <- data.frame(
-  Traits = rownames(envfit_fun$vectors$arrows),
-  NMDS1    = envfit_fun$vectors$arrows[, 1],
-  NMDS2    = envfit_fun$vectors$arrows[, 2],
-  r2       = envfit_fun$vectors$r,
-  p        = envfit_fun$vectors$pvals
-)
-
-fun_df <- fun_df %>%
-  select(Traits, NMDS1, NMDS2, r2, p) %>%
-  rename(
-    "$r^2$" = r2,           
-    "$p$"   = p)
-
-caption_text <- "Envfit results for functional NMDS ordination<br><hr style='border-top: 3px double black; margin: 0;'>"
-
-envs_tablefun <- kbl(
-  fun_df,   
-  row.names = F,
-  escape    = FALSE,   
-  booktabs  = TRUE, 
-  caption = caption_text
-) %>%
-  kable_styling(
-    full_width = FALSE,
-    position   = "center"
-  )
-save_kable(envs_tablefun, file = "outputs/envs_fun.html")
-
-
-#PERMANOVA table
-perm_fundf <- as.data.frame(perm_fun) %>%
-  rownames_to_column("Model") %>%
-  mutate(Model = if_else(Model == "Model", "Severity", Model)) %>%
-  select(Model, Df, R2, F, `Pr(>F)`) %>%
-  rename(
-    "df"    = Df,
-    "$R^2$" = R2,           
-    "$F$"   = F,
-    "$p$"   = `Pr(>F)`)
-
-caption_text_fun <- "PerMANOVA results for functional NMDS<br><hr style='border-top: 3px double black; margin: 0;'>"
-
-perm_table_fun <- kbl(
-  perm_fundf,   
-  escape    = FALSE,   
-  booktabs  = TRUE, 
-  caption = caption_text_fun) %>%
-  kable_styling(
-    full_width = FALSE,
-    position   = "center"
-  )
-save_kable(perm_table_fun, file = "outputs/permanova_fun.html")
-
-##COMBINED PERMANOVA TABLES
-combined_perm_df <- cbind(perm_taxdf, perm_fundf[ , -c(1,2)])
-caption_text <- "PerMANOVA results for taxonomic and functional NMDS<br><hr style='border-top: 3px double black; margin: 0;'>"
-combined_perm_table <- kbl(
-  combined_perm_df,
-  col.names = c("Model", "df", "$R^2$", "$F$", "$p$", "$R^2$", "$F$", "$p$"),
-  escape    = FALSE,
-  booktabs  = TRUE,
-  caption   = caption_text
-) %>%
-  add_header_above(c(" " = 2, "Taxonomic" = 3, "Functional" = 3)) %>%
-  kable_styling(full_width = FALSE, position = "center")
-save_kable(combined_perm_table, file = "outputs/permanova_combined.html")
-
-
-
-#ENVfit table
-tax_df <- data.frame(
-  Traits = rownames(envfit_tax$vectors$arrows),
-  NMDS1    = envfit_tax$vectors$arrows[, 1],
-  NMDS2    = envfit_tax$vectors$arrows[, 2],
-  r2       = envfit_tax$vectors$r,
-  p        = envfit_tax$vectors$pvals
-)
-
-tax_df <- tax_df %>%
-  select(Traits, NMDS1, NMDS2, r2, p) %>%
-  rename(
-    "$r^2$" = r2,           
-    "$p$"   = p)
-
-caption_text <- "Envfit results for taxonomic NMDS ordination<br><hr style='border-top: 3px double black; margin: 0;'>"
-
-envs_tabletax <- kbl(
-  tax_df,   
-  row.names = F,
-  escape    = FALSE,   
-  booktabs  = TRUE, 
-  caption = caption_text
-) %>%
-  kable_styling(
-    full_width = FALSE,
-    position   = "center"
-  )
-save_kable(envs_tabletax, file = "outputs/envs_tax.html")
-
-##COMBINED ENVFIT TABLES
-caption_text <- "Envfit results for taxonomic and functional NMDS ordinations<br><hr style='border-top: 3px double black; margin: 0;'>"
-combined_envfit <- cbind(tax_df, fun_df[, -1])
-combined_envfit_table <- kbl(combined_envfit,
-                             escape    = FALSE,  
-                             booktabs  = TRUE,
-                             row.names = F,
-                             caption   = caption_text,
-                             col.names = c("Traits", "NMDS1", "NMDS2", "$r^2$", "$p$",
-                                           "NMDS1", "NMDS2", "$r^2$", "$p$")
-) %>%
-  add_header_above(c(" " = 1, "Taxonomic" = 4, "Functional" = 4)) %>%
-  kable_styling(full_width = FALSE, position = "center")
-save_kable(combined_envfit_table, file = "outputs/envs_combined.html")

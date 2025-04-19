@@ -40,15 +40,16 @@ ind_rel_cov$severity <- matrix$Severity
 ind_cov_means <- ind_rel_cov %>% 
   pivot_longer(cols = "VETH":"PIPR", names_to = "spp") %>% 
   group_by(severity, spp) %>% 
-  summarise(cov = mean(value), cov_sd = sd(value))
+  summarise(cov = mean(value), cov_sd = sd(value)) %>% 
+  mutate(cov_cv = cov_sd/cov)
 
 
 ind_cov <- right_join(ind_cov_means, ind)
 
-ggplot(ind_cov, aes(x = spp, y = cov*100))+
+ggplot(ind_cov_means, aes(x = severity, y = cov*100))+
   geom_bar(stat = "identity")+
   geom_errorbar(aes(ymax = 100*(cov + cov_sd), ymin = 100*cov))+
-  facet_wrap(~severity, scales = "free_x")
+  facet_wrap(~spp, scales = "free_x")
 
 
 

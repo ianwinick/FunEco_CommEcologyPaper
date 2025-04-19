@@ -71,3 +71,4 @@ ggplot(type_df, aes(x = severity, y = cov*100, fill = group))+
   labs(x = "Burn severity", y = "Relative Cover (%)",
        fill = "Nativity")+
   scale_fill_manual(values = c("#ae94a3", "#4d795f"))
+
